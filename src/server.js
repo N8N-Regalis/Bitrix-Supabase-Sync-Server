@@ -1,18 +1,4 @@
 require('dotenv').config();
-const fs = require('fs');
-const path = require('path');
-
-/**
- * Server Entry Point
- * Initializes and starts the Express server
- */
-
-// Ensure logs directory exists BEFORE requiring logger
-const logsDir = path.join(__dirname, '..', 'logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
-}
-
 const app = require('./app');
 const scheduler = require('./jobs/scheduler');
 const supabase = require('./config/supabase');

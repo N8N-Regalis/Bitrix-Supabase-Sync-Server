@@ -37,7 +37,8 @@ class DealService {
             'DATE_MODIFY',
             'CLOSEDATE',
             'CLOSED',
-            'STAGE_SEMANTIC_ID'
+            'STAGE_SEMANTIC_ID',
+            'UF_CRM_1768236671239'
           ],
           order: { 'ID': 'ASC' },
           start: start
@@ -76,7 +77,7 @@ class DealService {
    */
   normalizeDeal(bitrixDeal) {
     const now = new Date().toISOString();
-    
+
     return {
       deal_id: parseInt(bitrixDeal.ID),
       title: bitrixDeal.TITLE || '',
@@ -92,6 +93,7 @@ class DealService {
       closed_at: bitrixDeal.CLOSEDATE || null,
       is_closed: bitrixDeal.CLOSED === 'Y',
       is_won: bitrixDeal.STAGE_SEMANTIC_ID === 'S', // 'S' means success/won
+      uf_crm_1768236671239: bitrixDeal.UF_CRM_1768236671239 || null,
       raw_json: bitrixDeal, // Store raw data for reference
       created_on_sync: now,
       updated_on_sync: now

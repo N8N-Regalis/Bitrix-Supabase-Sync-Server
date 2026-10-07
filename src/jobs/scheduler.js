@@ -21,9 +21,15 @@ class Scheduler {
       logger.info('Scheduler is disabled via ENABLE_SCHEDULER environment variable');
       return;
     }
-    
+
+    // Disable scheduler on Railway to avoid shutdown issues with long-running syncs
+    if (process.env.RAILWAY_ENVIRONMENT_NAME) {
+      logger.info('Running on Railway - scheduler disabled to avoid shutdown conflicts');
+      return;
+    }
+
     logger.info(`Starting scheduler with schedule: ${this.syncSchedule}`);
-    
+
     // Schedule deal synchronization
     this.scheduleDealSync();
   }

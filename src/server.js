@@ -33,21 +33,22 @@ async function startServer() {
     // Graceful shutdown handling
     const gracefulShutdown = (signal) => {
       logger.info(`${signal} received. Starting graceful shutdown...`);
-      
+
+      // Stop accepting new requests
+      server.close(() => {
+        logger.info('Server closed');
+      });
+
       // Stop the scheduler
       scheduler.stop();
-      
-      // Close the server
-      server.close(() => {
-        logger.info('Server closed successfully');
+
+      // Force exit after 3 seconds to avoid long-running operations blocking shutdown
+      const shutdownTimeout = setTimeout(() => {
+        logger.info('Shutdown timeout, exiting');
         process.exit(0);
-      });
-      
-      // Force shutdown after 10 seconds
-      setTimeout(() => {
-        logger.error('Forced shutdown after timeout');
-        process.exit(1);
-      }, 10000);
+      }, 3000);
+
+      shutdownTimeout.unref();
     };
     
     // Handle shutdown signals

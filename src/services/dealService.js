@@ -38,7 +38,8 @@ class DealService {
             'CLOSEDATE',
             'CLOSED',
             'STAGE_SEMANTIC_ID',
-            'UF_CRM_1768236671239'
+            'UF_CRM_1768236671239',
+            'UF_CRM_1791215613'
           ],
           order: { 'ID': 'ASC' },
           start: start
@@ -94,6 +95,7 @@ class DealService {
       is_closed: bitrixDeal.CLOSED === 'Y',
       is_won: bitrixDeal.STAGE_SEMANTIC_ID === 'S', // 'S' means success/won
       uf_crm_1768236671239: bitrixDeal.UF_CRM_1768236671239 || null,
+      uf_crm_1791215613: bitrixDeal.UF_CRM_1791215613 || null,
       raw_json: bitrixDeal, // Store raw data for reference
       created_on_sync: now,
       updated_on_sync: now

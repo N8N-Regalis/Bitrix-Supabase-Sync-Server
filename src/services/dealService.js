@@ -124,6 +124,15 @@ class DealService {
       errors: 0
     };
     
+    // The cron fires every 15 minutes and a manual POST can land any time; a
+    // second run on top of an unfinished one only doubles the Bitrix and
+    // Supabase load, so it is skipped rather than queued.
+    if (this.syncInProgress) {
+      logger.warn('Deal sync already in progress - skipping this run');
+      return { ...stats, skipped: true };
+    }
+    this.syncInProgress = true;
+
     logger.logSyncStart('deals');
     
     try {
@@ -148,16 +157,11 @@ class DealService {
         
         try {
           await dealRepository.batchUpsert(batch);
-          
-          // Track inserted vs updated by checking if records existed
-          for (const deal of batch) {
-            const existing = await dealRepository.findById(deal.deal_id);
-            if (existing) {
-              stats.updated++;
-            } else {
-              stats.inserted++;
-            }
-          }
+
+          // Insert vs update can't be told apart after the fact (the rows
+          // exist by now), and a findById per deal made every batch ~100
+          // sequential round trips -- hours for a full sync. Count upserts.
+          stats.updated += batch.length;
           
           logger.debug(`Batch ${Math.floor(i / batchSize) + 1} synced successfully`);
         } catch (error) {
@@ -170,12 +174,7 @@ class DealService {
           for (const deal of batch) {
             try {
               await dealRepository.upsert(deal);
-              const existing = await dealRepository.findById(deal.deal_id);
-              if (existing) {
-                stats.updated++;
-              } else {
-                stats.inserted++;
-              }
+              stats.updated++;
             } catch (individualError) {
               logger.error(`Individual deal sync failed`, { 
                 dealId: deal.deal_id, 
@@ -195,6 +194,8 @@ class DealService {
       const duration = Date.now() - startTime;
       logger.logSyncError('deals', error);
       throw new Error(`Deal synchronization failed: ${error.message}`);
+    } finally {
+      this.syncInProgress = false;
     }
   }
   
